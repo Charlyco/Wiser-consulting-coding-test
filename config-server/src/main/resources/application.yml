@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: config-server
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/Charlyco/Wiser-coding-test-cofig.git
+          skip-ssl-validation: true
+          clone-on-start: true
+          username: ${VAULT_GIT_USERNAME}
+          password: ${VAULT_GIT_TOKEN}
+
+server:
+  port: 8888
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
