@@ -10,7 +10,7 @@ spring:
           skip-ssl-validation: true
           clone-on-start: true
           username: Charlyco
-          password: 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
+          password: replace with value sent through email
 
 server:
   port: 8888
