@@ -4,4 +4,4 @@ spring:
 
   config:
     import:
-      optiona:configserver:http://localhost:8888
+      optional:configserver:http://localhost:8888

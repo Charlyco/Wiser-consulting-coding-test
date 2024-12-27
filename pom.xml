@@ -15,6 +15,7 @@
         <module>config-server</module>
         <module>auth-service</module>
         <module>inventory-service</module>
+        <module>ordering-service</module>
 	</modules>
 
 	<groupId>com.wiser.consulting</groupId>
