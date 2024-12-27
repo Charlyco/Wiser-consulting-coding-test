@@ -17,7 +17,7 @@ public interface AuthService {
 
     ApiResponse createCustomer(CreateCustomerDto createCustomerDto, HttpServletRequest request);
 
-    ApiResponse createEmployee(CreateEmployeeDto createEmployeeDto, HttpServletRequest request);
+    ApiResponse createEmployee(CreateEmployeeDto createEmployeeDto);
 
     AuthResponse loginEmployee(String email, String password);
 

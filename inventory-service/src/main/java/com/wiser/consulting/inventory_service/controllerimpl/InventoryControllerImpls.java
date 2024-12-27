@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InventoryControllerImpls implements InventoryController{
     private final InventoryService inventoryService;
-    HttpServletRequest request;
+    private final HttpServletRequest request;
     
     @Override
     public ResponseEntity<ApiResponse> addProduct(ProductDto productDto) {
@@ -32,7 +32,7 @@ public class InventoryControllerImpls implements InventoryController{
     }
 
     @Override
-    public ResponseEntity<ApiResponse> checkProductStock(String productId, int quantity) {
+    public ResponseEntity<Boolean> checkProductStock(String productId, int quantity) {
         return ResponseEntity.ok(inventoryService.checkProductStock(productId, quantity, request));
     }
 

@@ -13,8 +13,10 @@ import org.springframework.web.client.RestClient;
 import com.wiser.consulting.ordering_service.config.KafkaTopics;
 import com.wiser.consulting.ordering_service.dto.ApiResponse;
 import com.wiser.consulting.ordering_service.dto.CartDto;
+import com.wiser.consulting.ordering_service.dto.ItemDto;
 import com.wiser.consulting.ordering_service.dto.NewOrderDto;
 import com.wiser.consulting.ordering_service.dto.OrderDto;
+import com.wiser.consulting.ordering_service.dto.OrderReport;
 import com.wiser.consulting.ordering_service.entity.Cart;
 import com.wiser.consulting.ordering_service.entity.CartItem;
 import com.wiser.consulting.ordering_service.entity.Order;
@@ -51,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
                 updateInventory(item.getUid(), item.getQuantity(), accessToken)
             );
 
-            kafkaTemplate.send(KafkaTopics.ORDER_REPORT, newOrder.getOrderNumber(), orderDto);
+            generateAndPublishReport(newOrder);
 
             log.info("New order: {} at {}", newOrder, LocalDateTime.now());
 
@@ -62,21 +64,6 @@ public class OrderServiceImpl implements OrderService {
                 entityDtoConverter.convertOrderToOrderDto(newOrder));
         }else {
             return new ApiResponse("Some items are out of stock", HttpStatus.SC_NOT_FOUND, false, null);
-        }
-    }
-
-    @Override
-    public ApiResponse getAlOrders(HttpServletRequest request) {
-        String country = request.getHeader("country");
-        String accessToken = request.getHeader("Authorization");
-        Boolean isAuthorized = isUserAuthorized(accessToken);
-        if (isAuthorized) {
-            List<Order> orderList = orderRepository.findByCountry(country).orElseThrow();
-            List<OrderDto> orderDtoList = new ArrayList<>();
-            orderList.forEach(order -> orderDtoList.add(entityDtoConverter.convertOrderToOrderDto(order)));
-            return new ApiResponse("Success", HttpStatus.SC_OK, true, orderDtoList);
-        }else {
-            return new ApiResponse("Access denied", HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, false, null);
         }
     }
 
@@ -116,6 +103,25 @@ public class OrderServiceImpl implements OrderService {
             total += cartItem.getPrice() * cartItem.getQuantity();
         }
         return total;
+    }
+
+    private void generateAndPublishReport(Order newOrder) {
+        List<ItemDto> itemDtos = new ArrayList<>();
+        newOrder.getCart().getCartItemSet().forEach(item ->
+            itemDtos.add(entityDtoConverter.convertCartItemToItemDto(item))
+        );
+        OrderReport orderReport = OrderReport.builder()
+                                        .orderNumber(newOrder.getOrderNumber())
+                                        .orderDateTime(String.valueOf(newOrder.getOrderDateTime()))
+                                        .owner(newOrder.getOwner())
+                                        .pickupAddress(newOrder.getPickupAddress())
+                                        .shippingCost(newOrder.getShippingCost())
+                                        .totalItemCost(newOrder.getCart().getTotalPrice())
+                                        .totalCost(newOrder.getTotalCost())
+                                        .cartItemSet(itemDtos)
+                                        .build();
+                                        
+        kafkaTemplate.send(KafkaTopics.ORDER_REPORT, newOrder.getOrderNumber(), orderReport);
     }
 
     @CircuitBreaker(name = "getUserEmailFromToken", fallbackMethod = "getUserEmailFromTokenFallback")

@@ -12,8 +12,6 @@ import com.wiser.consulting.ordering_service.dto.NewOrderDto;
 public interface OrderController {
     @PostMapping("order")
     ResponseEntity<ApiResponse> createOrder(@RequestBody NewOrderDto orderDto);
-    @GetMapping("order/all")
-    ResponseEntity<ApiResponse> getAllOrders();
     @GetMapping("order/{orderNumber}")
     ResponseEntity<ApiResponse> getSingleOrderDetail(@PathVariable("orderNumber") String orderNumber);
     @PostMapping("cart")

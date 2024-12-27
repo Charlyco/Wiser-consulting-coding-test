@@ -11,8 +11,6 @@ import com.wiser.consulting.ordering_service.dto.NewOrderDto;
 public interface OrderService {
     ApiResponse saveOrder(NewOrderDto orderDto, HttpServletRequest request);
 
-    ApiResponse getAlOrders(HttpServletRequest request);
-
     ApiResponse getSingleOrderDetail(String orderNumber, HttpServletRequest request);
 
     ApiResponse createCart(CartDto cartDto, HttpServletRequest request);

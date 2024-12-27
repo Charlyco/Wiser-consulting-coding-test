@@ -54,51 +54,42 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ApiResponse addProduct(ProductDto productDto, HttpServletRequest httpServletRequest) {
-        String accessToken = httpServletRequest.getHeader("Authorization");
-
-        boolean isAuthorized = isUserAuthorized(accessToken);
-        if (isAuthorized) {
-            Product newProduct = productRepository.save(entityDtoConverter.contervtProductDtoToProduct(productDto));
-            log.info("New product created: {} at {}", newProduct, LocalDateTime.now());
-            return new ApiResponse("Product added successfully", 200, true,
-                    entityDtoConverter.contervtProducttoProductDto(newProduct));
-        } else {
-            return new ApiResponse("You are not authorized to add products", 400, false, null);
-        }
+        Product newProduct = productRepository.save(entityDtoConverter.contervtProductDtoToProduct(productDto));
+        log.info("New product created: {} at {}", newProduct, LocalDateTime.now());
+        return new ApiResponse("Product added successfully", 200, true,
+                entityDtoConverter.contervtProducttoProductDto(newProduct));
     }
 
     @Override
     public ApiResponse addProductItems(String productUid, List<ProductItemDto> productItemDtos, HttpServletRequest httpServletRequest) {
-        String accessToken = httpServletRequest.getHeader("Authorization");
-        boolean isAuthorized = isUserAuthorized(accessToken);
-        if (isAuthorized) {
-            Product product = productRepository.findByUid(UUID.fromString(productUid)).orElseThrow();
-            productItemDtos.forEach(productItemDto -> {
-                ProductItem newItem = productItemRepository.save(entityDtoConverter.contervtProductItemDtoToProductItem(productItemDto));
-                product.addProductItem(newItem);
-            });
+        Product product = productRepository.findByUid(UUID.fromString(productUid)).orElseThrow();
+        productItemDtos.forEach(productItemDto -> {
+            log.info("{}, {}", productUid, productItemDto.getProductUid());
+            ProductItem newItem = productItemRepository.save(entityDtoConverter.contervtProductItemDtoToProductItem(productItemDto));
+            product.addProductItem(newItem);
+            product.increamentAvailableQuantity();
             productRepository.save(product);
-            log.info("New items added to product: {} at {}", product.getName(), LocalDateTime.now());
-            return new ApiResponse("Items added successfully", 200, true, entityDtoConverter.contervtProducttoProductDto(product));
-        }
-        return new ApiResponse("You are not authorized to add products", 400, false, null);
+        });
+        log.info("New items added to product: {} at {}", product.getName(), LocalDateTime.now());
+        return new ApiResponse("Items added successfully", 200, true, entityDtoConverter.contervtProducttoProductDto(product));
+
     }
 
     @Override
-    public ApiResponse checkProductStock(String productId, int quantity, HttpServletRequest httpServletRequest) {
+    public Boolean checkProductStock(String productId, int quantity, HttpServletRequest httpServletRequest) {
         try {
             while (shouldWait) {
                 isLocked.await();
             }
             Product product = productRepository.findByUid(UUID.fromString(productId)).orElseThrow();
             if (product.getProductItemList().size()>= quantity) {
-                return new ApiResponse("Successful", HttpStatus.SC_OK, true, true);
+                return true;
             }else {
-                return new ApiResponse("Successful", HttpStatus.SC_OK, true, false);
+                return false;
             }
 
         } catch (Exception e) {
-            return new ApiResponse("An error occurred", HttpStatus.SC_NO_CONTENT, false, false);
+            return false;
         }
     }
 
@@ -127,19 +118,13 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ApiResponse deleteProduct(String productId, HttpServletRequest httpServletRequest) {
-        String accessToken = httpServletRequest.getHeader("Authorization");
-        boolean isAuthorized = isUserAuthorized(accessToken);
-        if (isAuthorized) {
-            if (productRepository.findByUid(UUID.fromString(productId)).isPresent()) {
-                Product product = productRepository.findByUid(UUID.fromString(productId)).orElseThrow();
-                productRepository.delete(product);
-                log.info("Product: {} deleted successfully at {}", product.getName(), LocalDateTime.now());
-                return new ApiResponse("Product deleted successfully", 200, true, null);
-            }else {
-                return new ApiResponse("Product not found", 400, false, null);
-            }
+        if (productRepository.findByUid(UUID.fromString(productId)).isPresent()) {
+            Product product = productRepository.findByUid(UUID.fromString(productId)).orElseThrow();
+            productRepository.delete(product);
+            log.info("Product: {} deleted successfully at {}", product.getName(), LocalDateTime.now());
+            return new ApiResponse("Product deleted successfully", 200, true, null);
         }else {
-            return new ApiResponse("You are not authorized to delete product", 400, false, null);
+            return new ApiResponse("Product not found", 400, false, null);
         }
     }
 
@@ -147,8 +132,7 @@ public class InventoryServiceImpl implements InventoryService {
     public ApiResponse removeProductItem(String productBarCode, HttpServletRequest httpServletRequest) {
         try {
             String accessToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-            boolean isAuthorized = isUserAuthorized(accessToken);
-            if (isAuthorized) {
+            
                 ProductItem productItem = productItemRepository.findByBarcode(productBarCode).orElseThrow();
             Product product = productRepository.findByUid(productItem.getProduct().getUid()).orElseThrow();
 
@@ -163,9 +147,6 @@ public class InventoryServiceImpl implements InventoryService {
                 HttpStatus.SC_OK, 
                 true, 
                 entityDtoConverter.contervtProducttoProductDto(product));
-            }else {
-                return new ApiResponse("Unauthorized access", HttpStatus.SC_NON_AUTHORITATIVE_INFORMATION, false, null);
-            }
             
         } catch (Exception e) {
             log.info("An error has occurred: {}", e.getLocalizedMessage());
@@ -211,21 +192,17 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public ApiResponse applyDiscount(String productUid, Double discountPercentage, HttpServletRequest httpServletRequest) {
         String accessToken = httpServletRequest.getHeader("Authorization");
-        boolean isAuthorized = isUserAuthorized(accessToken);
         String employee = getUserByAccessToken(accessToken);
-                if (isAuthorized) {
-                    Product product = productRepository.findByUid(UUID.fromString(productUid)).orElseThrow();
-                product.setDiscountPercentage(discountPercentage);
-                productRepository.save(product);
-                log.info("Discount applied on {} by {} at {}", product.getName(), employee, LocalDateTime.now());
-                return new ApiResponse(
+            Product product = productRepository.findByUid(UUID.fromString(productUid)).orElseThrow();
+            product.setDiscountPercentage(discountPercentage);
+            productRepository.save(product);
+            log.info("Discount applied on {} by {} at {}", product.getName(), employee, LocalDateTime.now());
+            return new ApiResponse(
                     "Discount applied successfully", 
                     HttpStatus.SC_OK, 
                     true, 
                     entityDtoConverter.contervtProducttoProductDto(product));
-                }else {
-                    return new ApiResponse("Unauthorized access blocked", HttpStatus.SC_BAD_REQUEST, isAuthorized, null);
-            }
+                
         }
         
             
@@ -233,9 +210,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public ApiResponse updateProductPrice(String productId, Double newPrice, HttpServletRequest httpServletRequest) {
         String accessToken = httpServletRequest.getHeader("Authorization");
-        boolean isAuthorized = isUserAuthorized(accessToken);
         String employee = getUserByAccessToken(accessToken);
-        if (isAuthorized) {
         Product product = productRepository.findByUid(UUID.fromString(productId)).orElseThrow();
         product.setPrice(newPrice);
         productRepository.save(product);
@@ -245,9 +220,6 @@ public class InventoryServiceImpl implements InventoryService {
              HttpStatus.SC_OK, 
              true, 
              entityDtoConverter.contervtProducttoProductDto(product));
-        }else {
-            return new ApiResponse("Unauthorized access blocked", HttpStatus.SC_BAD_REQUEST, isAuthorized, null);
-        }
 
     }
 
@@ -266,23 +238,6 @@ public class InventoryServiceImpl implements InventoryService {
                 .build();
     }
         
-
-    @CircuitBreaker(name = "isUserAuthorized", fallbackMethod = "isUserAuthorizedFallback")
-    private Boolean isUserAuthorized(String accessToken) {
-        RestClient restClient = RestClient.builder()
-                .baseUrl("http://localhost:8084/")
-                .build();
-
-        return restClient.get()
-                .uri("auth-service/api/v1/user/isInventoryAdmin")
-                .header("Authorization", accessToken)
-                .retrieve()
-                .body(Boolean.class);
-    }
-
-    Boolean isUserAuthorizedFallback() {
-        return false;
-    }
 
     @CircuitBreaker(name = "getUserByAccessToken", fallbackMethod = "getUserByAccessTokenFallback")
     private String getUserByAccessToken(String accessToken) {

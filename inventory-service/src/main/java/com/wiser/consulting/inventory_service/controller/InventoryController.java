@@ -28,7 +28,7 @@ public interface InventoryController {
     ResponseEntity<ApiResponse> addProductItems(@PathVariable("productId") String productUid, @RequestBody List<ProductItemDto> productItemDtos);
 
     @GetMapping("{productId}")
-    ResponseEntity<ApiResponse> checkProductStock(@PathVariable("productId") String productId, @RequestParam("quantity") int quantity);
+    ResponseEntity<Boolean> checkProductStock(@PathVariable("productId") String productId, @RequestParam("quantity") int quantity);
 
     @PutMapping("{productId}")
     ResponseEntity<ApiResponse> updatProductStock(@PathVariable("productId") String productId, @RequestParam("quantity") int quantity);

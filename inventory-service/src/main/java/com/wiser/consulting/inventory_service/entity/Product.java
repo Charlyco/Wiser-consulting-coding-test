@@ -68,4 +68,8 @@ public class Product {
     public synchronized void decreamentAvailableQuantity(int quantity) {
         availableQuantity -= quantity;
     }
+
+    public void increamentAvailableQuantity() {
+        availableQuantity ++;
+    }
 }

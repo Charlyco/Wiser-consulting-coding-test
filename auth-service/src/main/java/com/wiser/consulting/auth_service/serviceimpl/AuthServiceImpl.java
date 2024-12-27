@@ -95,16 +95,14 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ApiResponse createEmployee(CreateEmployeeDto createEmployeeDto, HttpServletRequest request) {
-        String userToken = request.getHeader("Authorization");
-        String loggedInUser = getUserInfoByToken(userToken);
+    public ApiResponse createEmployee(CreateEmployeeDto createEmployeeDto) {
         if (employeeRepository.findByEmail(createEmployeeDto.getEmail()).isPresent()) {
             return new ApiResponse("Employee already exists", 400, false, "Employee already exists");
         } else if (employeeRepository.findByPhone(createEmployeeDto.getPhone()).isPresent()) {
             return new ApiResponse("Phone number already exists", 400, false, "Phone number already exists");
         }else {
             Employee employee = employeeRepository.save(entityDtoConverter.convertCreateEmployeeDtoToEmployee(createEmployeeDto));
-            log.info("New employee for {} account created by {} on {}", employee.getFullName(), loggedInUser, LocalDateTime.now());
+            log.info("New employee for {} account created on {}", employee.getFullName(), LocalDateTime.now());
             return new ApiResponse("Successfully created employee", 200, true, null);
         }
     }

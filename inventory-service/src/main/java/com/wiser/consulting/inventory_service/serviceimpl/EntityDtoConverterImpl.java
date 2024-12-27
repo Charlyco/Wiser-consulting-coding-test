@@ -43,6 +43,7 @@ public class EntityDtoConverterImpl implements EntityDtoConverter {
                 .discountPercentage(product.getDiscountPercentage())
                 .discountPrice(product.getDiscountedPrice())
                 .quantitySold(product.getQuantitySold())
+                .availableQuantity(product.getAvailableQuantity())
                 .build();
     }
 
@@ -65,6 +66,7 @@ public class EntityDtoConverterImpl implements EntityDtoConverter {
                 .productItemList(new HashSet<>())
                 .discountPercentage(productDto.getDiscountPercentage())
                 .discountPrice(productDto.getDiscountPrice())
+                .availableQuantity(0L)
                 .build();
     }
 

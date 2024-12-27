@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.wiser.consulting.ordering_service.dto.CartDto;
+import com.wiser.consulting.ordering_service.dto.ItemDto;
 import com.wiser.consulting.ordering_service.dto.NewOrderDto;
 import com.wiser.consulting.ordering_service.dto.OrderDto;
 import com.wiser.consulting.ordering_service.entity.Cart;
@@ -102,5 +103,24 @@ public class EntityDtoConverterImpl implements EntityDtoConverter {
                 .status(String.valueOf(cart.getStatus()))
                 .totalPrice(cart.getTotalPrice())
                 .build();
+    }
+
+    @Override
+    public ItemDto convertCartItemToItemDto(CartItem cartItem) {
+        ItemDto itemDto = ItemDto.builder()
+                                .uid(cartItem.getUid().toString())
+                                .brand(cartItem.getBrand())
+                                .description(cartItem.getDescription())
+                                .name(cartItem.getName())
+                                .color(cartItem.getColor())
+                                .model(cartItem.getModel())
+                                .manufacturer(cartItem.getManufacturer())
+                                .category(cartItem.getCategory())
+                                .price(cartItem.getPrice())
+                                .quantity(cartItem.getQuantity())
+                                .weight(cartItem.getWeight())
+                                .build();
+
+        return itemDto;
     }
 }

@@ -23,11 +23,6 @@ public class OrderControllerImpl implements OrderController {
     }
 
     @Override
-    public ResponseEntity<ApiResponse> getAllOrders() {
-        return ResponseEntity.ok(orderService.getAlOrders(request));
-    }
-
-    @Override
     public ResponseEntity<ApiResponse> getSingleOrderDetail(String orderNumber) {
         return ResponseEntity.ok(orderService.getSingleOrderDetail(orderNumber, request));
     }

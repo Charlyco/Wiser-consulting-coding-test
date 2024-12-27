@@ -36,7 +36,7 @@ public class AuthControllerImpl implements AuthController{
 
     @Override
     public ResponseEntity<ApiResponse> createEmployee(CreateEmployeeDto createEmployeeDto) {
-        return ResponseEntity.ok(authService.createEmployee(createEmployeeDto, request));
+        return ResponseEntity.ok(authService.createEmployee(createEmployeeDto));
     }
 
     @Override

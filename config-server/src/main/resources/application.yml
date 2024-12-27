@@ -6,11 +6,11 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/Charlyco/Wiser-coding-test-cofig.git
+          uri: https://github.com/Charlyco/Wiser-consulting-config.git
           skip-ssl-validation: true
           clone-on-start: true
-          username: ${VAULT_GIT_USERNAME}
-          password: ${VAULT_GIT_TOKEN}
+          username: Charlyco
+          password: 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
 
 server:
   port: 8888

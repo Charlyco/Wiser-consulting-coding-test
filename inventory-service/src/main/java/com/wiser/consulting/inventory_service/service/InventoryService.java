@@ -16,7 +16,7 @@ public interface InventoryService {
 
     ApiResponse addProductItems(String productUid, List<ProductItemDto> productItemDtos, HttpServletRequest httpServletRequest);
 
-    ApiResponse checkProductStock(String productId, int quantity, HttpServletRequest httpServletRequest);
+    Boolean checkProductStock(String productId, int quantity, HttpServletRequest httpServletRequest);
     ApiResponse updatProductStock(String productId, int quantity, HttpServletRequest httpServletRequest);
 
     ApiResponse deleteProduct(String productId, HttpServletRequest httpServletRequest);
