@@ -17,7 +17,7 @@ import com.wiser.consulting.reporting_service.entity.OrderReport;
 public interface ReportingController {
 
     @KafkaListener(
-        topics = KafkaTopic.PREVIOUS_ORDER,
+        topics = KafkaTopic.ORDER_REPORT,
         containerFactory = "orderReportListenerContainerFactory",
         groupId = "wiser_consulting"
     )
